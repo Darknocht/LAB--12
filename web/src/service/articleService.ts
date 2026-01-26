@@ -10,6 +10,21 @@ export const articleService = {
     },
 
     async deleteArticle(id: number): Promise<void> {
-        await fetch(`http://localhost:3000/removeArticle/${id}`, { method: 'GET' });
+        const response = await fetch(`${API_URL}/articles/${id}`, {
+            method: 'DELETE'
+        });
+        if (!response.ok) throw new Error('Failed to delete article');
+    },
+
+    async createArticle(article: Omit<Article, 'id'>): Promise<Article> {
+        const response = await fetch(`${API_URL}/articles`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(article),
+        });
+        if (!response.ok) throw new Error('Failed to create article');
+        return response.json();
     }
 };
