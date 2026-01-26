@@ -1,6 +1,6 @@
-import type {PanelProps} from "./PanelProps.ts";
+import type {ArticlePanelProps} from "./ArticlePanelProps.ts";
 
-export function ArticleDetails({ article, onClose, onSwitch }: PanelProps){
+export function ArticleDetails({ article, onClose}: ArticlePanelProps){
     return (
         <div className="article-details">
             {article ? (
@@ -10,7 +10,6 @@ export function ArticleDetails({ article, onClose, onSwitch }: PanelProps){
                     <p><strong>Price:</strong> {article.price}€</p>
                     <p><strong>Description:</strong> {article.description}</p>
                     <div className="panel-controls">
-                        <button onClick={onSwitch}>Switch</button>
                         <button onClick={onClose} className="btn-close">Close</button>
                     </div>
                 </div>

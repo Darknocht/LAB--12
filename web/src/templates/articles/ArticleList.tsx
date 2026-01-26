@@ -1,28 +1,24 @@
-import {TopPanel} from "./TopPanel.tsx";
-import {BottomPanel} from "./BottomPanel.tsx";
+import {ArticleDetailsPanel} from "../../components/articles/ArticleDetailsPanel.tsx";
 import {useState} from "react";
-import type {Article} from '../service/Article.ts';
+import {useNavigate, Link} from "react-router-dom";
+import type {Article} from '../../service/Article.ts';
 
 interface MainPanelProps {
     articles: Article[];
     onDelete: (id: number) => void;
 }
 
-export function MainPanel({ articles, onDelete }: MainPanelProps) {
+export function ArticleList({ articles, onDelete }: MainPanelProps) {
     const [selectedTop, setSelectedTop] = useState<Article | null>(null);
-    const [selectedBottom, setSelectedBottom] = useState<Article | null>(null);
-
-    const handleSwitch = () => {
-        const temp = selectedTop;
-        setSelectedTop(selectedBottom);
-        setSelectedBottom(temp);
-    };
+    const navigate = useNavigate();
 
     return (
         <div className="main-panel">
             <div className="main-content">
                 <div className="articles-grid">
-                    <a href="/addArticle"><button>Add article</button></a>
+                    <Link to="/AddArticle">
+                        <button className="btn-add">Add article</button>
+                    </Link>
                     {articles.map(article => (
                         <div key={article.id} className="article-tile">
                             <h3>{article.name}</h3>
@@ -31,11 +27,8 @@ export function MainPanel({ articles, onDelete }: MainPanelProps) {
                                 <button
                                     onClick={() => setSelectedTop(article)}
                                     className={selectedTop?.id === article.id ? "btn-active" : ""}
-                                >Top</button>
-                                <button
-                                    onClick={() => setSelectedBottom(article)}
-                                    className={selectedBottom?.id === article.id ? "btn-active" : ""}
-                                >Bottom</button>
+                                >Details</button>
+                                <button onClick={() => navigate(`/edit/${article.id}`)}>Edit</button>
                                 <button
                                     onClick={() => onDelete(article.id)}
                                     className="btn-close"
@@ -46,8 +39,7 @@ export function MainPanel({ articles, onDelete }: MainPanelProps) {
                 </div>
             </div>
             <div className="side-panels">
-                <TopPanel article={selectedTop} onClose={() => setSelectedTop(null)} onSwitch={handleSwitch}/>
-                <BottomPanel article={selectedBottom} onClose={() => setSelectedBottom(null)} onSwitch={handleSwitch}/>
+                <ArticleDetailsPanel article={selectedTop} onClose={() => setSelectedTop(null)}/>
             </div>
         </div>
     );

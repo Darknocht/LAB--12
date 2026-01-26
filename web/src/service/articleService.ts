@@ -26,5 +26,20 @@ export const articleService = {
         });
         if (!response.ok) throw new Error('Failed to create article');
         return response.json();
+    },
+
+    async getArticleById(id: number): Promise<Article> {
+        const response = await fetch(`${API_URL}/articles/${id}`);
+        if (!response.ok) throw new Error('Article not found');
+        return response.json();
+    },
+
+    async updateArticle(id: number, article: Partial<Article>): Promise<void> {
+        const response = await fetch(`${API_URL}/articles/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(article),
+        });
+        if (!response.ok) throw new Error('Error updating article');
     }
 };
