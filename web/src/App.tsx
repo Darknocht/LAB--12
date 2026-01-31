@@ -1,19 +1,15 @@
 import './App.css'
 import {MenuBar} from "./components/MenuBar.tsx";
-import {ArticleList} from "./templates/articles/ArticleList.tsx";
+import {ArticleList} from "./templates/ArticleList.tsx";
 import {FooterBar} from "./components/FooterBar.tsx";
 import {Route, Routes, useNavigate} from "react-router-dom";
 import {About} from "./templates/About.tsx";
-import {AddArticle} from "./templates/articles/AddArticle.tsx";
 import {useState, useEffect} from "react";
 import type {Article} from './service/Article.ts';
 import {articleService} from "./service/articleService.ts";
-import {EditArticle} from "./templates/articles/EditArticle.tsx";
-import {CategoryList} from "./templates/categories/CategoryList.tsx";
+import {CategoryList} from "./templates/CategoryList.tsx";
 import {categoryService} from "./service/categoryService.ts";
 import type {Category} from "./service/Category.ts";
-import {AddCategory} from "./templates/categories/AddCategory.tsx";
-import {EditCategory} from "./templates/categories/EditCategory.tsx";
 
 function App() {
     const [articles, setArticles] = useState<Article[]>([]);
@@ -79,27 +75,19 @@ function App() {
                         <ArticleList
                             articles={articles}
                             onDelete={handleDeleteArticle}
+                            onArticleCreated={handleArticleCreated}
+                            onArticleUpdated={handleArticleUpdated}
                         />
                     }/>
                     <Route path="/category" element={
                         <CategoryList
                             categories={category}
                             onDelete={handleDeleteCategory}
+                            onCategoryCreated={handleCategoryCreated}
+                            onCategoryUpdated={handleCategoryUpdated}
                         />
                     }/>
                     <Route path="/about" element={<About/>}/>
-                    <Route path="/AddArticle" element={
-                        <AddArticle onArticleCreated={handleArticleCreated}/>
-                    }/>
-                    <Route path="/edit/:id" element={
-                        <EditArticle onArticleUpdated={handleArticleUpdated} />
-                    } />
-                    <Route path="/AddCategory" element={
-                        <AddCategory onCategoryCreated={handleCategoryCreated}/>
-                    }/>
-                    <Route path="/editCategory/:id" element={
-                        <EditCategory onCategoryUpdated={handleCategoryUpdated} />
-                    } />
                     <Route path="*" element={<h1>Error 404</h1>}/>
                 </Routes>
             </main>

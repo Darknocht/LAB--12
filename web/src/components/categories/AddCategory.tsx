@@ -3,9 +3,10 @@ import { categoryService } from "../../service/categoryService.ts"; // Utilise l
 
 interface Props {
     onCategoryCreated: (newCategory: any) => void;
+    onClose: () => void;
 }
 
-export function AddCategory({ onCategoryCreated }: Props) {
+export function AddCategory({ onCategoryCreated, onClose }: Props) {
     const [name, setName] = useState('');
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -22,19 +23,21 @@ export function AddCategory({ onCategoryCreated }: Props) {
 
     return (
         <form onSubmit={handleSubmit} className="article-form">
-            <h1>Add a new Category</h1>
+            <h3>Add a new Category</h3>
             <p>
-                <label htmlFor="catName">Category Name</label>
                 <input
                     id="catName"
                     type="text"
-                    placeholder="e.g. Dairy, Drinks..."
+                    placeholder="Name"
                     value={name}
                     onChange={e => setName(e.target.value)}
                     required
                 />
             </p>
             <button type="submit" className="btn btn-primary">Add Category</button>
+            <div className="panel-controls">
+                <button onClick={onClose} className="btn-close">Close</button>
+            </div>
         </form>
     );
 }
