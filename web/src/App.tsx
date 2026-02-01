@@ -59,10 +59,26 @@ function App() {
         }
     };
 
+
+    //
     const handleDeleteCategory = async (id: number) => {
-        if (window.confirm("Deleting the category ?")) {
-            await categoryService.deleteCategory(id);
-            setCategory(category.filter(c => c.id !== id));
+        if (window.confirm("Deleting the category with all the articles ?")) {
+            try {
+                const categoryObj = category.find(c => c.id === id);
+                const nameToFilter = categoryObj ? categoryObj.name : null;
+
+                await categoryService.deleteCategory(id);
+                setCategory(prev => prev.filter(c => c.id !== id));
+
+                if (nameToFilter) {
+                    setArticles(prev => prev.filter(a => a.category !== nameToFilter));
+                }
+                loadArticles();
+
+            } catch (err) {
+                console.error(err);
+                alert("Error deleting the category");
+            }
         }
     };
 
