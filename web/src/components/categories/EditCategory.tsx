@@ -5,54 +5,53 @@ import type { Category } from "../../service/Category.ts";
 
 interface Props {
     onCategoryUpdated: () => void;
-    idFromProps?: number;
     onClose: () => void;
 }
 
-export function EditCategory({ onCategoryUpdated, idFromProps, onClose }: Props) {
-    const { id: urlId } = useParams();
-    const effectiveId = idFromProps || Number(urlId); // Utilise la prop ou l'URL
+export function EditCategory({ onCategoryUpdated, onClose }: Props) {
+    const { id } = useParams<{ id: string }>();
     const [category, setCategory] = useState<Category | null>(null);
 
     useEffect(() => {
-        if (effectiveId) {
-            categoryService.getCategoryById(effectiveId)
+        if (id) {
+            categoryService.getCategoryById(Number(id))
                 .then(setCategory)
                 .catch(err => console.error("Error loading category:", err));
         }
-    }, [effectiveId]);
+    }, [id]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (category && effectiveId) {
+        if (category && id) {
             try {
-                await categoryService.updateCategory(effectiveId, category.name);
+                await categoryService.updateCategory(Number(id), category.name);
                 onCategoryUpdated();
-                // Suppression de navigate car on reste sur la même page
+                onClose();
             } catch (err) {
                 alert("Failed to update category");
             }
         }
     };
 
-    if (!category) return <p>Loading...</p>;
+    if (!category) return <div className="top-panel"><p>Loading...</p></div>;
 
     return (
-        <form onSubmit={handleSubmit} className="article-form">
-            <h3>Edit Category</h3>
-            <p>
-                <label>Name</label>
-                <input
-                    type="text"
-                    value={category.name}
-                    onChange={e => setCategory({...category, name: e.target.value})}
-                    required
-                />
-            </p>
-            <button type="submit" className="btn btn-primary">Update</button>
-            <div className="panel-controls">
-                <button onClick={onClose} className="btn-close">Close</button>
-            </div>
-        </form>
+        <div className="top-panel">
+            <form onSubmit={handleSubmit} className="article-form">
+                <h3>Edit Category</h3>
+                <p>
+                    <input
+                        type="text"
+                        value={category.name}
+                        onChange={e => setCategory({...category, name: e.target.value})}
+                        required
+                    />
+                </p>
+                <button type="submit" className="btn btn-primary">Update</button>
+                <div className="panel-controls">
+                    <button type="button" onClick={onClose} className="btn-close">Close</button>
+                </div>
+            </form>
+        </div>
     );
 }

@@ -4,9 +4,13 @@ const API_URL = 'http://localhost:3000/api';
 
 export const articleService = {
     async getAllArticles(): Promise<Article[]> {
-        const response = await fetch(`${API_URL}/articles`);
-        if (!response.ok) throw new Error('Network response was not ok');
-        return response.json();
+        try {
+            const response = await fetch(`${API_URL}/articles`);
+            if (!response.ok) throw new Error('Backend returned an error');
+            return await response.json();
+        } catch (err) {
+            throw new Error('Server down');
+        }
     },
 
     async deleteArticle(id: number): Promise<void> {

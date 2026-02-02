@@ -1,8 +1,7 @@
-import {ArticleDetailsPanel} from "../components/articles/ArticleDetailsPanel.tsx";
-import {useState} from "react";
 import type {Article} from '../service/Article.ts';
-import {AddArticle} from "../components/articles/AddArticle.tsx";
-import {EditArticle} from "../components/articles/EditArticle.tsx";
+import {Outlet, useNavigate, useParams} from "react-router-dom";
+import {useEffect, useState} from "react";
+import {articleService} from "../service/articleService.ts";
 
 interface MainPanelProps {
     articles: Article[];
@@ -11,50 +10,54 @@ interface MainPanelProps {
     onArticleUpdated: () => void;
 }
 
-export function ArticleList({ articles, onDelete, onArticleCreated, onArticleUpdated }: MainPanelProps) {
-    const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
-    const [view, setView] = useState<'details' | 'add' | 'edit' | null>(null);
-
-    const closePanel = () => {
-        setView(null);
-        setSelectedArticle(null);
-    };
-
-    // Style pour le bouton vert sélectionné
+export function ArticleList({ articles, onDelete }: MainPanelProps) {
     const activeStyle = { backgroundColor: '#28a745', color: 'white' };
+    const navigate = useNavigate();
+    const { id } = useParams<{ id: string }>();
+
+    const [error, setError] = useState<string | null>(null);
+    const isAdding = location.pathname === "/add";
+    const isEditing = (id: number) => location.pathname === `/edit/${id}`;
+    const isDetails = (id: number) => location.pathname === `/details/${id}`;
+
+    useEffect(() => {
+        if (id) {
+            setError(null);
+            articleService.getArticleById(Number(id))
+                .catch(err => {
+                    console.error("Error loading article:", err);
+                    setError("Article not found");
+                });
+        } else {
+            setError(null);
+        }
+    }, [id]);
+
+    if (articles.length === 0) {
+        return (
+            <div className="main-panel">
+                <div className="main-content">
+                    <p>Loading data...</p>
+                </div>
+                <div className="side-panels"><Outlet /></div>
+            </div>
+        );
+    }
 
     return (
         <div className="main-panel">
             <div className="main-content">
                 <div className="articles-grid">
-                    <button
-                        className="btn-add"
-                        style={view === 'add' ? activeStyle : {}}
-                        onClick={() => { setView('add'); setSelectedArticle(null); }}
-                    >
-                        Add article
-                    </button>
+                    <button style={isAdding ? activeStyle : {}} className="btn-add" onClick={() => navigate("/add")}>Add article</button>
 
                     {articles.map(article => (
                         <div key={article.id} className="article-tile">
                             <h3>{article.name}</h3>
                             <p className="category-tag">{article.category}</p>
                             <div className="tile-actions">
-                                <button
-                                    onClick={() => { setSelectedArticle(article); setView('details'); }}
-                                    style={view === 'details' && selectedArticle?.id === article.id ? activeStyle : {}}
-                                >
-                                    Details
-                                </button>
-                                <button
-                                    onClick={() => { setSelectedArticle(article); setView('edit'); }}
-                                    style={view === 'edit' && selectedArticle?.id === article.id ? activeStyle : {}}
-                                >
-                                    Edit
-                                </button>
-                                <button onClick={() => onDelete(article.id)} className="btn-close">
-                                    Delete
-                                </button>
+                                <button style={isDetails(article.id) ? activeStyle : {}} onClick={() => navigate(`/details/${article.id}`)}>Details</button>
+                                <button style={isEditing(article.id) ? activeStyle : {}} onClick={() => navigate(`/edit/${article.id}`)}>Edit</button>
+                                <button className="btn-close" onClick={() => onDelete(article.id)}>Delete</button>
                             </div>
                         </div>
                     ))}
@@ -62,22 +65,16 @@ export function ArticleList({ articles, onDelete, onArticleCreated, onArticleUpd
             </div>
 
             <div className="side-panels">
-                {view === 'details' && (
-                    <ArticleDetailsPanel article={selectedArticle} onClose={closePanel}/>
-                )}
-                {view === 'add' && (
-                    <div className="top-panel">
-                        <AddArticle onArticleCreated={(art) => { onArticleCreated(art)}} onClose={closePanel} />
+                {error ? (
+                    <div className="top-panel error-message">
+                        <div className="main-content">
+                            <h4>Error</h4>
+                            <p>{error}</p>
+                            <button onClick={() => navigate("/")} className="btn-close">Close</button>
+                        </div>
                     </div>
-                )}
-                {view === 'edit' && selectedArticle && (
-                    <div className="top-panel">
-                        <EditArticle
-                            idFromProps={selectedArticle.id}
-                            onArticleUpdated={() => { onArticleUpdated()}}
-                            onClose={closePanel}
-                        />
-                    </div>
+                ) : (
+                    <Outlet />
                 )}
             </div>
         </div>

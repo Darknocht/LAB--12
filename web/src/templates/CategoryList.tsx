@@ -1,25 +1,47 @@
-import { useState } from "react";
-import { AddCategory } from "../components/categories/AddCategory.tsx";
-import { EditCategory } from "../components/categories/EditCategory.tsx";
+import { Outlet, useNavigate, useLocation, useParams } from "react-router-dom";
 import type { Category } from "../service/Category.ts";
+import { useEffect, useState } from "react"; // Ajout de useState
+import { categoryService } from "../service/categoryService.ts";
 
 interface MainPanelProps {
     categories: Category[];
     onDelete: (id: number) => void;
-    onCategoryCreated: (newCategory: Category) => void;
-    onCategoryUpdated: () => void;
 }
 
-export function CategoryList({ categories, onDelete, onCategoryCreated, onCategoryUpdated }: MainPanelProps) {
-    const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
-    const [view, setView] = useState<'add' | 'edit' | null>(null);
+export function CategoryList({ categories, onDelete }: MainPanelProps) {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { id } = useParams<{ id: string }>();
 
-    const closePanel = () => {
-        setView(null);
-        setSelectedCategory(null);
-    };
+    const [error, setError] = useState<string | null>(null);
 
     const activeStyle = { backgroundColor: '#28a745', color: 'white' };
+    const isAdding = location.pathname === "/category/add";
+    const isEditing = (id: number) => location.pathname === `/category/edit/${id}`;
+
+    useEffect(() => {
+        if (id) {
+            setError(null);
+            categoryService.getCategoryById(Number(id))
+                .catch(err => {
+                    console.error("Error loading category:", err);
+                    setError("Category not found");
+                });
+        } else {
+            setError(null);
+        }
+    }, [id]);
+
+    if (categories.length === 0) {
+        return (
+            <div className="main-panel">
+                <div className="main-content">
+                    <p>Loading data...</p>
+                </div>
+                <div className="side-panels"><Outlet /></div>
+            </div>
+        );
+    }
 
     return (
         <div className="main-panel">
@@ -27,8 +49,8 @@ export function CategoryList({ categories, onDelete, onCategoryCreated, onCatego
                 <div className="articles-grid">
                     <button
                         className="btn-add"
-                        style={view === 'add' ? activeStyle : {}}
-                        onClick={() => { setView('add'); setSelectedCategory(null); }}
+                        style={isAdding ? activeStyle : {}}
+                        onClick={() => navigate("add")}
                     >
                         Add Category
                     </button>
@@ -38,8 +60,8 @@ export function CategoryList({ categories, onDelete, onCategoryCreated, onCatego
                             <h3>{category.name}</h3>
                             <div className="tile-actions">
                                 <button
-                                    onClick={() => { setSelectedCategory(category); setView('edit'); }}
-                                    style={view === 'edit' && selectedCategory?.id === category.id ? activeStyle : {}}
+                                    onClick={() => navigate(`edit/${category.id}`)}
+                                    style={isEditing(category.id) ? activeStyle : {}}
                                 >
                                     Edit
                                 </button>
@@ -52,21 +74,18 @@ export function CategoryList({ categories, onDelete, onCategoryCreated, onCatego
                     ))}
                 </div>
             </div>
+
             <div className="side-panels">
-                {view === 'add' && (
-                    <div className="top-panel">
-                        <AddCategory onCategoryCreated={(cat) => { onCategoryCreated(cat);}}
-                        onClose={closePanel}/>
+                {error ? (
+                    <div className="top-panel error-message">
+                        <div className="main-content">
+                            <h4>Error</h4>
+                            <p>{error}</p>
+                            <button onClick={() => navigate("/category")} className="btn-close">Close</button>
+                        </div>
                     </div>
-                )}
-                {view === 'edit' && selectedCategory && (
-                    <div className="top-panel">
-                        <EditCategory
-                            idFromProps={selectedCategory.id}
-                            onCategoryUpdated={() => { onCategoryUpdated();}}
-                            onClose={closePanel}
-                        />
-                    </div>
+                ) : (
+                    <Outlet />
                 )}
             </div>
         </div>
